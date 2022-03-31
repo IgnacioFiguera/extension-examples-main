@@ -27,7 +27,6 @@
  import React, {useContext, useState, useEffect } from 'react'
  import { ExtensionContext2 } from '@looker/extension-sdk-react'
  import {
-   Layout,
    Page,
    Form,
    Button,
@@ -48,10 +47,7 @@
  } from '@looker/components'
  import { CalendarDay } from '@looker/icons'
  import {
-  FieldDate,
   InputDate,
-  Calendar,
-  DateFormat,
 } from '@looker/components-date'
 import i18n from 'i18next'
 import { format } from 'date-fns';
