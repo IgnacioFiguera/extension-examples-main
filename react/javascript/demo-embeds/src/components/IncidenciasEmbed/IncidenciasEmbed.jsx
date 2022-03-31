@@ -37,10 +37,7 @@
    Box2,
    Space,
    Select,
-   Heading,
    Grid,
-   GridPlaceholder,
-   Spinner,
    Popover,
    IconButton,
    ProgressCircular,
@@ -60,13 +57,21 @@ export const IncidenciasEmbed = ({ embedType }) => {
   const [tiendasO, setTiendasO] = useState()
   const [tiendasD, setTiendasD] = useState()
   const [progress, setProgress] = useState()
+  const [cadenaOValue, setCadenaOValue] = useState()
+  const [cadenaDValue, setCadenaDValue] = useState()
+  const [tiendaOValue, setTiendaOValue] = useState()
+  const [tiendaDValue, setTiendaDValue] = useState()
+
   const { coreSDK } = useContext(ExtensionContext2)
 
   const callLang = () => i18n.on("load")
-  const handleDate = (date) => {
-    setSelectedDate(date);
-    setselectedDateFormated(format(date, 'dd-MM-yyyy'))
-  }
+
+  useEffect(() => {
+    setProgress(false)
+    callLang();
+    GetCadenas();
+  }, []);
+
   const GetCadenas = async () => {
     console.log("handleCadenas");
     try {
@@ -107,23 +112,12 @@ export const IncidenciasEmbed = ({ embedType }) => {
     }
   }
 
-  const runModel = () => {
-    window.location.reload(false);
-    setProgress(true)
-  };
-
-  useEffect(() => {
-    setProgress(false)
-    callLang();
-    GetCadenas();
-  }, []);
-
   const state = {
     selectedOption: null,
   };
 
   const handleCadenaOrigen = async (selectedOption) => {
-    console.log(selectedOption)
+    setCadenaOValue(selectedOption)
     try {
 
       const queryResponse = await coreSDK.ok(coreSDK.create_sql_query(
@@ -135,7 +129,6 @@ export const IncidenciasEmbed = ({ embedType }) => {
           queryResponse.slug, 'json'))
           .then(
             (result) => {
-              console.log(result);
               setTiendasO(
               result
               .map((data) => (
@@ -154,7 +147,7 @@ export const IncidenciasEmbed = ({ embedType }) => {
   };
 
   const handleCadenaDestino = async (selectedOption) => {
-    console.log(selectedOption)
+    setCadenaDValue(selectedOption)
     try {
 
       const queryResponse = await coreSDK.ok(coreSDK.create_sql_query(
@@ -166,7 +159,6 @@ export const IncidenciasEmbed = ({ embedType }) => {
           queryResponse.slug, 'json'))
           .then(
             (result) => {
-              console.log(result);
               setTiendasD(
               result
               .map((data) => (
@@ -184,9 +176,39 @@ export const IncidenciasEmbed = ({ embedType }) => {
     }
   };
 
-const handleTienda = (selectedOption) => {
-  console.log(`Option selected:`, selectedOption)
-};
+  const handleTiendaOrigen = (selectedOption) => {
+    setTiendaOValue(selectedOption)
+  };
+
+  const handleTiendaDestino = (selectedOption) => {
+    setTiendaDValue(selectedOption)
+  };
+
+  const handleDate = (date) => {
+    setSelectedDate(date);
+    setselectedDateFormated(format(date, 'dd-MM-yyyy'))
+  }
+  
+  const runModel = async (event) => {
+    event.preventDefault();
+    setProgress(true)
+    try {
+      const queryResponse = await coreSDK.ok(coreSDK.create_sql_query(
+        {
+          connection_name: 'piagui_connection',
+          sql: "INSERT `piagui-analitica.Demo_Modelos_Tableros.Formato_Tiendas_Prueba` (cadena_origen, tienda_origen, cadena_destino, tienda_destino, mes_inicio)" + 
+          "VALUES('" + cadenaOValue + "','" + tiendaOValue + "','" + cadenaDValue + "','" + tiendaDValue + "','" + format(selectedDate, 'yyyy-MM-dd') + "')"
+        }))
+        const cadenas = await coreSDK.ok(coreSDK.run_sql_query(
+          queryResponse.slug, 'json_detail'))
+          .then(
+            (result) => {
+            setProgress(false)
+            })
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
 const { selectedOption } = state;
   return (
@@ -243,7 +265,7 @@ const { selectedOption } = state;
         <Box2 minWidth="200px">
           <Select
               placeholder="Tiendas"
-              onChange={handleTienda}
+              onChange={handleTiendaOrigen}
               options={tiendasO}
             />
         </Box2>
@@ -253,6 +275,7 @@ const { selectedOption } = state;
         <Box2 minWidth="200px">
           <Select
               placeholder="Tiendas"
+              onChange={handleTiendaDestino}
               options={tiendasD}
           />
         </Box2>
